@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="breadTop" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fcd34d" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="cheeseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#eab308" />
+    </linearGradient>
+    <linearGradient id="hamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fda4af" />
+      <stop offset="100%" stop-color="#e11d48" />
+    </linearGradient>
+    <linearGradient id="lettuceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#86efac" />
+      <stop offset="100%" stop-color="#16a34a" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background container -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+
+  <!-- Outer Ring glow -->
+  <rect x="16" y="16" width="480" height="480" rx="112" stroke="#38bdf8" stroke-width="4" stroke-opacity="0.25" fill="none" />
+
+  <g filter="url(#shadow)">
+    <!-- Top Bread Slice -->
+    <path d="M120 180 C120 150 160 135 256 135 C352 135 392 150 392 180 C392 205 380 215 365 220 L147 220 C132 215 120 205 120 180 Z" fill="url(#breadTop)" />
+    <!-- Toast crust highlight -->
+    <path d="M140 178 C155 160 200 150 256 150 C312 150 357 160 372 178" stroke="#fef3c7" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.6"/>
+
+    <!-- Lettuce Layer (Wavy) -->
+    <path d="M110 225 C125 215 140 235 160 225 C180 215 200 235 220 225 C240 215 260 235 280 225 C300 215 320 235 340 225 C360 215 380 235 402 225 C408 232 405 240 395 242 L117 242 C107 240 104 232 110 225 Z" fill="url(#lettuceGrad)" />
+
+    <!-- Tomato / Ham Layer -->
+    <rect x="125" y="244" width="262" height="22" rx="11" fill="url(#hamGrad)" />
+
+    <!-- Cheese slice with hanging corners -->
+    <path d="M130 268 L382 268 L350 305 L290 280 L220 310 L160 280 Z" fill="url(#cheeseGrad)" />
+
+    <!-- Bottom Bread Slice -->
+    <path d="M135 285 L377 285 C388 285 396 295 394 308 C388 345 350 365 256 365 C162 365 124 345 118 308 C116 295 124 285 135 285 Z" fill="url(#breadTop)" />
+  </g>
+
+  <!-- PW Badge on top corner -->
+  <g transform="translate(350, 80)">
+    <circle cx="36" cy="36" r="36" fill="#3b82f6" stroke="#ffffff" stroke-width="3" />
+    <text x="36" y="44" font-family="Arial, sans-serif" font-weight="900" font-size="24" fill="#ffffff" text-anchor="middle">PW</text>
+  </g>
+
+  <!-- Title Text -->
+  <text x="256" y="435" font-family="'IBM Plex Sans Thai', Arial, sans-serif" font-weight="800" font-size="44" fill="#f8fafc" text-anchor="middle" letter-spacing="4">PANWICH</text>
+  <text x="256" y="468" font-family="'IBM Plex Sans Thai', Arial, sans-serif" font-weight="600" font-size="18" fill="#38bdf8" text-anchor="middle" letter-spacing="6">ORDER POS</text>
+</svg>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import OrderCalculator from './pages/OrderCalculator';
 import OrderHistory from './pages/OrderHistory';
 import MenuMaster from './pages/MenuMaster';
+import PwaPrompt from './components/PwaPrompt';
 import type { SavedOrder } from './types';
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
 
   return (
     <div className={`min-h-screen bg-slate-200 overflow-x-hidden ${isDark ? 'dark' : ''}`}>
+      <PwaPrompt />
       <main className={`min-h-screen ${isDark ? 'bg-[#0b1520] dark' : 'bg-slate-200'}`}>
         {page === 'order/calculator' && (
           <OrderCalculator
