@@ -21,14 +21,11 @@ import {
 } from 'lucide-react';
 import {
   MENU_OPTIONS,
-  VEGGIE_OPTIONS,
   TOPPING_OPTIONS,
-  toggleVeggieSelection,
   calculateOrderPrice,
 } from '../data/menuData';
 import type {
   MenuId,
-  VeggieId,
   ToppingId,
   OrderItem,
   SavedOrder,
@@ -127,19 +124,6 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
     setItems(prev => prev.map(item => (item.id === id ? { ...item, menuId } : item)));
   };
 
-  // Toggle vegetable selection per piece
-  const handleVeggieToggle = (id: string, veggieId: VeggieId) => {
-    setItems(prev =>
-      prev.map(item => {
-        if (item.id !== id) return item;
-        return {
-          ...item,
-          veggies: toggleVeggieSelection(item.veggies, veggieId),
-        };
-      })
-    );
-  };
-
   // Toggle topping selection per piece (+5 THB each)
   const handleToppingToggle = (id: string, toppingId: ToppingId) => {
     setItems(prev =>
@@ -200,12 +184,6 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
         itemNote: '',
       },
     ]);
-  };
-
-  const isVeggieChecked = (selected: VeggieId[], target: VeggieId) => {
-    if (target === 'all') return selected.includes('all');
-    if (target === 'none') return selected.includes('none');
-    return selected.includes('all') || selected.includes(target);
   };
 
   return (
@@ -353,92 +331,50 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
                   </div>
                 </div>
 
-                {/* 2 & 3: Veggies and Toppings in Responsive Columns */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                  {/* Veggies */}
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                      2. เลือกผัก (ฟรี)
+                {/* 2. Toppings (+5 THB each) */}
+                <div className="pt-1">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      2. เพิ่มท็อปปิ้ง (อย่างละ +5 บาท)
                     </label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {VEGGIE_OPTIONS.map(veg => {
-                        const checked = isVeggieChecked(item.veggies, veg.id);
-                        return (
-                          <button
-                            key={veg.id}
-                            type="button"
-                            onClick={() => handleVeggieToggle(item.id, veg.id)}
-                            className={`px-3 py-2 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5 active:scale-95 touch-manipulation ${
-                              checked
-                                ? veg.id === 'none'
-                                  ? 'bg-red-50 border-red-300 text-red-700 font-semibold'
-                                  : 'bg-emerald-50 border-emerald-400 text-emerald-800 font-semibold'
-                                : 'bg-gray-50/80 border-gray-200 text-gray-600 hover:bg-gray-100'
-                            }`}
-                          >
+                    {item.toppings.length > 0 && (
+                      <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                        +{itemToppingCost} บาท
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {TOPPING_OPTIONS.map(top => {
+                      const checked = item.toppings.includes(top.id);
+                      return (
+                        <button
+                          key={top.id}
+                          type="button"
+                          onClick={() => handleToppingToggle(item.id, top.id)}
+                          className={`px-3 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center justify-between gap-1.5 active:scale-95 touch-manipulation ${
+                            checked
+                              ? 'bg-amber-50 border-amber-400 text-amber-950 font-bold ring-1 ring-amber-400/30'
+                              : 'bg-gray-50/80 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
                             <span
                               className={`w-4 h-4 rounded-md flex items-center justify-center border shrink-0 ${
                                 checked
-                                  ? veg.id === 'none'
-                                    ? 'bg-red-600 border-red-600 text-white'
-                                    : 'bg-emerald-600 border-emerald-600 text-white'
+                                  ? 'bg-amber-500 border-amber-500 text-white'
                                   : 'border-gray-300 bg-white'
                               }`}
                             >
                               {checked && <Check size={10} />}
                             </span>
-                            <span>{veg.name}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Toppings (+5 THB each) */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        3. เพิ่มท็อปปิ้ง (อย่างละ +5 บาท)
-                      </label>
-                      {item.toppings.length > 0 && (
-                        <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                          +{itemToppingCost} บาท
-                        </span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {TOPPING_OPTIONS.map(top => {
-                        const checked = item.toppings.includes(top.id);
-                        return (
-                          <button
-                            key={top.id}
-                            type="button"
-                            onClick={() => handleToppingToggle(item.id, top.id)}
-                            className={`px-2.5 py-2 rounded-xl text-xs font-medium border transition-all flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-1 active:scale-95 touch-manipulation text-center sm:text-left ${
-                              checked
-                                ? 'bg-amber-50 border-amber-400 text-amber-950 font-bold ring-1 ring-amber-400/30'
-                                : 'bg-gray-50/80 border-gray-200 text-gray-700 hover:bg-gray-100'
-                            }`}
-                          >
-                            <div className="flex items-center gap-1.5 truncate">
-                              <span
-                                className={`w-4 h-4 rounded-md flex items-center justify-center border shrink-0 ${
-                                  checked
-                                    ? 'bg-amber-500 border-amber-500 text-white'
-                                    : 'border-gray-300 bg-white'
-                                }`}
-                              >
-                                {checked && <Check size={10} />}
-                              </span>
-                              <span className="truncate">{top.name}</span>
-                            </div>
-                            <span className="text-[10px] text-amber-700 font-extrabold shrink-0">
-                              +5฿
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                            <span className="truncate text-xs sm:text-sm font-semibold">{top.name}</span>
+                          </div>
+                          <span className="text-xs text-amber-700 font-extrabold shrink-0 bg-amber-100/70 px-1.5 py-0.5 rounded-md">
+                            +5฿
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

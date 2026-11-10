@@ -15,7 +15,7 @@ export default function Header({ title, breadcrumb, dark, onMenuClick, onThemeTo
 
   const [notifications, setNotifications] = useState([
     { id: 1, title: 'โปรโมชั่นพิเศษ PANWICH', desc: 'ซื้อชิ้นละ 25 บาท พิเศษ 3 ชิ้นเพียง 70 บาท (ประหยัดทันที 5 บาท/ชุด)' },
-    { id: 2, title: 'ระบบแยกท็อปปิ้งรายชิ้น', desc: 'สามารถเลือกผักและท็อปปิ้ง (+5 บ.) แยกของแต่ละชิ้นได้อย่างอิสระ' },
+    { id: 2, title: 'ระบบแยกท็อปปิ้งรายชิ้น', desc: 'สามารถเลือกท็อปปิ้ง (+5 บ.) แยกของแต่ละชิ้นได้อย่างอิสระ' },
   ]);
 
   useEffect(() => {
