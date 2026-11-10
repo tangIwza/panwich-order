@@ -68,6 +68,7 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
 
   const calculation = calculateOrderPrice(items);
   const PROMPTPAY_PHONE = '0631468293';
+  const PROMPTPAY_DISPLAY = '06-3146-8293';
 
   // Generate PromptPay QR code whenever modal opens or grandTotal changes
   useEffect(() => {
@@ -111,7 +112,13 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
       toppings: [],
       itemNote: '',
     }));
-    setItems(prev => [...prev, ...newItems]);
+    setItems(prev => {
+      // If there is currently only 1 untouched initial piece (no toppings), replace it so total is exactly 3 pieces
+      if (prev.length === 1 && prev[0].toppings.length === 0) {
+        return newItems;
+      }
+      return [...prev, ...newItems];
+    });
   };
 
   // Duplicate an existing piece
@@ -547,7 +554,7 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
                             พร้อมเพย์ (PromptPay)
                           </span>
                           <span className="text-[11px] text-gray-500">
-                            เบอร์โทร: <strong className="text-gray-900 font-mono text-xs">061-820-0073</strong>
+                            เบอร์โทร: <strong className="text-gray-900 font-mono text-xs">{PROMPTPAY_DISPLAY}</strong>
                           </span>
                         </div>
                       </div>
