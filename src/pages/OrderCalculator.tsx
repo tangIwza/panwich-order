@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import generatePayload from 'promptpay-qr';
 import {
   Plus,
+  Minus,
   Trash2,
   Copy,
   RotateCcw,
@@ -129,17 +130,31 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
     setItems(prev => prev.filter(item => item.id !== id));
   };
 
-  // Toggle topping selection per piece (+5 THB each)
-  const handleToppingToggle = (id: string, toppingId: ToppingId) => {
+  // Add 1 topping (+5 THB each, allows multiple)
+  const handleAddTopping = (id: string, toppingId: ToppingId) => {
     setItems(prev =>
       prev.map(item => {
         if (item.id !== id) return item;
-        const exists = item.toppings.includes(toppingId);
         return {
           ...item,
-          toppings: exists
-            ? item.toppings.filter(t => t !== toppingId)
-            : [...item.toppings, toppingId],
+          toppings: [...item.toppings, toppingId],
+        };
+      })
+    );
+  };
+
+  // Remove 1 topping (decreases quantity by 1)
+  const handleRemoveTopping = (id: string, toppingId: ToppingId) => {
+    setItems(prev =>
+      prev.map(item => {
+        if (item.id !== id) return item;
+        const index = item.toppings.indexOf(toppingId);
+        if (index === -1) return item;
+        const nextToppings = [...item.toppings];
+        nextToppings.splice(index, 1);
+        return {
+          ...item,
+          toppings: nextToppings,
         };
       })
     );
@@ -301,55 +316,81 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
                 </div>
               </div>
 
-              {/* Card Body: Toppings Selection */}
+              {/* Card Body: Toppings Selection with Stepper (Allows Multiple) */}
               <div className="p-4 sm:p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">
-                    เลือกท็อปปิ้ง (+5 บาท/อย่าง)
-                  </label>
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      เลือกท็อปปิ้ง (+5 บาท/อย่าง)
+                    </label>
+                    <p className="text-[11px] text-gray-400">กดปุ่ม + เพื่อเพิ่มจำนวนได้หลายชิ้นตามต้องการ</p>
+                  </div>
                   {item.toppings.length > 0 && (
-                    <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                      +{itemToppingCost} บาท
+                    <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                      +{itemToppingCost} บาท ({item.toppings.length} อย่าง)
                     </span>
                   )}
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   {TOPPING_OPTIONS.map(top => {
-                    const checked = item.toppings.includes(top.id);
+                    const count = item.toppings.filter(t => t === top.id).length;
                     return (
-                      <button
+                      <div
                         key={top.id}
-                        type="button"
-                        onClick={() => handleToppingToggle(item.id, top.id)}
-                        className={`px-3 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center justify-between gap-1.5 active:scale-95 touch-manipulation ${
-                          checked
-                            ? 'bg-amber-50 border-amber-400 text-amber-950 font-bold ring-1 ring-amber-400/30'
-                            : 'bg-gray-50/80 border-gray-200 text-gray-700 hover:bg-gray-100'
+                        className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-2 ${
+                          count > 0
+                            ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-300/40'
+                            : 'bg-gray-50/70 border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <div className="flex items-center gap-2 truncate">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-sm text-gray-800 whitespace-nowrap">
+                            {top.name}
+                          </p>
+                          <p className="text-[11px] text-amber-700 font-semibold">
+                            +5฿ {count > 1 && <span className="text-gray-500 font-normal">({count * 5}฿)</span>}
+                          </p>
+                        </div>
+
+                        {/* Stepper Controls: Minus, Count, Plus */}
+                        <div className="flex items-center gap-1.5 shrink-0 bg-white p-1 rounded-lg border border-gray-200 shadow-2xs">
+                          <button
+                            type="button"
+                            disabled={count === 0}
+                            onClick={() => handleRemoveTopping(item.id, top.id)}
+                            className="w-8 h-8 rounded-md flex items-center justify-center font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-20 disabled:hover:bg-transparent active:scale-90 transition-all touch-manipulation"
+                            title={`ลด ${top.name}`}
+                          >
+                            <Minus size={15} />
+                          </button>
+
                           <span
-                            className={`w-4 h-4 rounded-md flex items-center justify-center border shrink-0 ${
-                              checked
-                                ? 'bg-amber-500 border-amber-500 text-white'
-                                : 'border-gray-300 bg-white'
+                            className={`w-6 text-center text-sm font-black tabular-nums ${
+                              count > 0 ? 'text-amber-900 font-black' : 'text-gray-300'
                             }`}
                           >
-                            {checked && <Check size={10} />}
+                            {count}
                           </span>
-                          <span className="truncate text-xs sm:text-sm font-semibold">{top.name}</span>
+
+                          <button
+                            type="button"
+                            onClick={() => handleAddTopping(item.id, top.id)}
+                            className="w-8 h-8 rounded-md bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white flex items-center justify-center font-bold shadow-xs active:scale-90 transition-all touch-manipulation"
+                            title={`เพิ่ม ${top.name}`}
+                          >
+                            <Plus size={15} />
+                          </button>
                         </div>
-                        <span className="text-xs text-amber-700 font-extrabold shrink-0 bg-amber-100/70 px-1.5 py-0.5 rounded-md">
-                          +5฿
-                        </span>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
               </div>
-              );
-        })}
             </div>
+          );
+        })}
+      </div>
 
       {/* Price Breakdown Summary Card */ }
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 space-y-4">

@@ -203,10 +203,17 @@ export default function OrderHistory({ orders, onDeleteOrder, onCreateNew }: Ord
                       : item.veggies
                           .map(vid => VEGGIE_OPTIONS.find(v => v.id === vid)?.name)
                           .join(', ');
+                    const toppingCounts: Record<string, number> = {};
+                    item.toppings.forEach(tid => {
+                      toppingCounts[tid] = (toppingCounts[tid] || 0) + 1;
+                    });
                     const topText =
-                      item.toppings.length > 0
-                        ? item.toppings
-                            .map(tid => TOPPING_OPTIONS.find(t => t.id === tid)?.name)
+                      Object.keys(toppingCounts).length > 0
+                        ? Object.entries(toppingCounts)
+                            .map(([tid, count]) => {
+                              const name = TOPPING_OPTIONS.find(t => t.id === tid)?.name || tid;
+                              return count > 1 ? `${name} x${count}` : name;
+                            })
                             .join(', ')
                         : '-';
                     return (
