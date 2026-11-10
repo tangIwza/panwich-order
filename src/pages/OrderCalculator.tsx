@@ -160,6 +160,27 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
     );
   };
 
+  // Toggle topping from box click: if 0 -> set to 1, if >0 -> remove all
+  const handleToggleToppingBox = (id: string, toppingId: ToppingId) => {
+    setItems(prev =>
+      prev.map(item => {
+        if (item.id !== id) return item;
+        const count = item.toppings.filter(t => t === toppingId).length;
+        if (count === 0) {
+          return {
+            ...item,
+            toppings: [...item.toppings, toppingId],
+          };
+        } else {
+          return {
+            ...item,
+            toppings: item.toppings.filter(t => t !== toppingId),
+          };
+        }
+      })
+    );
+  };
+
   // Reset order
   const handleResetOrder = () => {
     setItems([
@@ -338,27 +359,45 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
                     return (
                       <div
                         key={top.id}
-                        className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-2 ${
+                        onClick={() => handleToggleToppingBox(item.id, top.id)}
+                        className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-2.5 cursor-pointer select-none active:scale-[0.99] ${
                           count > 0
-                            ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-300/40'
-                            : 'bg-gray-50/70 border-gray-200 hover:border-gray-300'
+                            ? 'bg-amber-50/90 border-amber-400 ring-2 ring-amber-400/30 shadow-xs'
+                            : 'bg-gray-50/70 border-gray-200 hover:border-gray-300 hover:bg-gray-100/60'
                         }`}
                       >
-                        <div className="min-w-0 flex-1">
-                          <p className="font-bold text-sm text-gray-800 whitespace-nowrap">
-                            {top.name}
-                          </p>
-                          <p className="text-[11px] text-amber-700 font-semibold">
-                            +5฿ {count > 1 && <span className="text-gray-500 font-normal">({count * 5}฿)</span>}
-                          </p>
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div
+                            className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                              count > 0
+                                ? 'bg-amber-500 border-amber-500 text-white shadow-2xs'
+                                : 'border-gray-300 bg-white'
+                            }`}
+                          >
+                            {count > 0 && <Check size={11} strokeWidth={3} />}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-sm text-gray-800 whitespace-nowrap">
+                              {top.name}
+                            </p>
+                            <p className="text-[11px] text-amber-700 font-semibold">
+                              +5฿ {count > 1 && <span className="text-gray-500 font-normal">({count * 5}฿)</span>}
+                            </p>
+                          </div>
                         </div>
 
                         {/* Stepper Controls: Minus, Count, Plus */}
-                        <div className="flex items-center gap-1.5 shrink-0 bg-white p-1 rounded-lg border border-gray-200 shadow-2xs">
+                        <div
+                          onClick={e => e.stopPropagation()}
+                          className="flex items-center gap-1.5 shrink-0 bg-white p-1 rounded-lg border border-gray-200 shadow-2xs"
+                        >
                           <button
                             type="button"
                             disabled={count === 0}
-                            onClick={() => handleRemoveTopping(item.id, top.id)}
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleRemoveTopping(item.id, top.id);
+                            }}
                             className="w-8 h-8 rounded-md flex items-center justify-center font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-20 disabled:hover:bg-transparent active:scale-90 transition-all touch-manipulation"
                             title={`ลด ${top.name}`}
                           >
@@ -375,7 +414,10 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
 
                           <button
                             type="button"
-                            onClick={() => handleAddTopping(item.id, top.id)}
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleAddTopping(item.id, top.id);
+                            }}
                             className="w-8 h-8 rounded-md bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white flex items-center justify-center font-bold shadow-xs active:scale-90 transition-all touch-manipulation"
                             title={`เพิ่ม ${top.name}`}
                           >
