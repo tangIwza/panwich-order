@@ -17,10 +17,8 @@ import {
   Check,
   QrCode,
   Smartphone,
-  Download,
 } from 'lucide-react';
 import {
-  MENU_OPTIONS,
   TOPPING_OPTIONS,
   calculateOrderPrice,
 } from '../data/menuData';
@@ -68,7 +66,7 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
   const calculation = calculateOrderPrice(items);
-  const PROMPTPAY_PHONE = '0618200073';
+  const PROMPTPAY_PHONE = '0631468293';
 
   // Generate PromptPay QR code whenever modal opens or grandTotal changes
   useEffect(() => {
@@ -91,16 +89,28 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
     }
   }, [showSummaryModal, calculation.grandTotal]);
 
-  // Add a new blank/default piece
-  const handleAddBlankPiece = (defaultMenuId: MenuId = 'moon') => {
+  // Add a new sandwich piece
+  const handleAddBlankPiece = () => {
     const newItem: OrderItem = {
       id: `item-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      menuId: defaultMenuId,
+      menuId: 'moon',
       veggies: ['all'],
       toppings: [],
       itemNote: '',
     };
     setItems(prev => [...prev, newItem]);
+  };
+
+  // Quick add 3 pieces (1 promo bundle set)
+  const handleAddBundle = () => {
+    const newItems: OrderItem[] = Array.from({ length: 3 }, (_, i) => ({
+      id: `item-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}`,
+      menuId: 'moon',
+      veggies: ['all'],
+      toppings: [],
+      itemNote: '',
+    }));
+    setItems(prev => [...prev, ...newItems]);
   };
 
   // Duplicate an existing piece
@@ -117,11 +127,6 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
   // Remove a piece
   const handleRemovePiece = (id: string) => {
     setItems(prev => prev.filter(item => item.id !== id));
-  };
-
-  // Update a piece's menu
-  const handleMenuChange = (id: string, menuId: MenuId) => {
-    setItems(prev => prev.map(item => (item.id === id ? { ...item, menuId } : item)));
   };
 
   // Toggle topping selection per piece (+5 THB each)
@@ -212,7 +217,7 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
               </span>
             </div>
             <p className="text-xs text-gray-500">
-              กดเพิ่มเมนูและเลือกท็อปปิ้ง (+5฿) แยกแต่ละชิ้นได้อิสระ
+              กดเพิ่มจำนวนชิ้นและเลือกท็อปปิ้ง (+5฿) แยกแต่ละชิ้นได้อิสระ
             </p>
           </div>
         </div>
@@ -228,11 +233,20 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
           </button>
           <button
             type="button"
-            onClick={() => handleAddBlankPiece('moon')}
+            onClick={handleAddBundle}
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl transition-colors active:scale-95"
+            title="เพิ่ม 3 ชิ้น (1 ชุดโปร 70฿)"
+          >
+            <Sparkles size={14} className="text-emerald-600" />
+            +3 ชิ้น (โปร 70฿)
+          </button>
+          <button
+            type="button"
+            onClick={handleAddBlankPiece}
             className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold rounded-xl shadow-sm transition-colors active:scale-95"
           >
             <Plus size={16} />
-            เพิ่มชิ้นใหม่
+            +1 ชิ้น (25฿)
           </button>
         </div>
       </div>
@@ -240,7 +254,6 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
       {/* SINGLE COLUMN: List of Sandwich Piece Cards (Optimized for Mobile, iPad, and Touch) */}
       <div className="space-y-3 sm:space-y-4">
         {items.map((item, idx) => {
-          const menuObj = MENU_OPTIONS.find(m => m.id === item.menuId)!;
           const bundleGroupIndex = Math.floor(idx / 3) + 1;
           const isPartOfCompleteBundle = Math.floor(idx / 3) < calculation.bundleSets;
           const itemToppingCost = item.toppings.length * 5;
@@ -288,267 +301,223 @@ export default function OrderCalculator({ onSaveOrder, nextOrderNumber }: OrderC
                 </div>
               </div>
 
-              {/* Card Body: Controls (Responsive Grid for Phone & iPad) */}
-              <div className="p-4 sm:p-5 space-y-4">
-                {/* 1. Menu Selection */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                    1. เลือกเมนู (25 บาท/ชิ้น)
+              {/* Card Body: Toppings Selection */}
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    เลือกท็อปปิ้ง (+5 บาท/อย่าง)
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {MENU_OPTIONS.map(m => {
-                      const active = item.menuId === m.id;
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => handleMenuChange(item.id, m.id)}
-                          className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all flex flex-col justify-between active:scale-98 ${
-                            active
-                              ? 'border-blue-900 bg-blue-50/60 ring-2 ring-blue-900/15'
-                              : 'border-gray-200 hover:border-gray-300 bg-white'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-1.5">
-                              <MenuIcon menuId={m.id} size={16} />
-                              <span className="font-bold text-xs sm:text-sm text-gray-900 truncate">
-                                {m.name}
-                              </span>
-                            </div>
-                            <div
-                              className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
-                                active ? 'border-blue-900 bg-blue-900 text-white' : 'border-gray-300'
-                              }`}
-                            >
-                              {active && <Check size={8} />}
-                            </div>
-                          </div>
-                          <span className="text-[11px] text-gray-500 truncate">{m.thaiSub}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {item.toppings.length > 0 && (
+                    <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                      +{itemToppingCost} บาท
+                    </span>
+                  )}
                 </div>
-
-                {/* 2. Toppings (+5 THB each) */}
-                <div className="pt-1">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      2. เพิ่มท็อปปิ้ง (อย่างละ +5 บาท)
-                    </label>
-                    {item.toppings.length > 0 && (
-                      <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                        +{itemToppingCost} บาท
-                      </span>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {TOPPING_OPTIONS.map(top => {
-                      const checked = item.toppings.includes(top.id);
-                      return (
-                        <button
-                          key={top.id}
-                          type="button"
-                          onClick={() => handleToppingToggle(item.id, top.id)}
-                          className={`px-3 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center justify-between gap-1.5 active:scale-95 touch-manipulation ${
-                            checked
-                              ? 'bg-amber-50 border-amber-400 text-amber-950 font-bold ring-1 ring-amber-400/30'
-                              : 'bg-gray-50/80 border-gray-200 text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 truncate">
-                            <span
-                              className={`w-4 h-4 rounded-md flex items-center justify-center border shrink-0 ${
-                                checked
-                                  ? 'bg-amber-500 border-amber-500 text-white'
-                                  : 'border-gray-300 bg-white'
-                              }`}
-                            >
-                              {checked && <Check size={10} />}
-                            </span>
-                            <span className="truncate text-xs sm:text-sm font-semibold">{top.name}</span>
-                          </div>
-                          <span className="text-xs text-amber-700 font-extrabold shrink-0 bg-amber-100/70 px-1.5 py-0.5 rounded-md">
-                            +5฿
+                <div className="grid grid-cols-3 gap-2">
+                  {TOPPING_OPTIONS.map(top => {
+                    const checked = item.toppings.includes(top.id);
+                    return (
+                      <button
+                        key={top.id}
+                        type="button"
+                        onClick={() => handleToppingToggle(item.id, top.id)}
+                        className={`px-3 py-2.5 rounded-xl text-xs font-medium border transition-all flex items-center justify-between gap-1.5 active:scale-95 touch-manipulation ${
+                          checked
+                            ? 'bg-amber-50 border-amber-400 text-amber-950 font-bold ring-1 ring-amber-400/30'
+                            : 'bg-gray-50/80 border-gray-200 text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span
+                            className={`w-4 h-4 rounded-md flex items-center justify-center border shrink-0 ${
+                              checked
+                                ? 'bg-amber-500 border-amber-500 text-white'
+                                : 'border-gray-300 bg-white'
+                            }`}
+                          >
+                            {checked && <Check size={10} />}
                           </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                          <span className="truncate text-xs sm:text-sm font-semibold">{top.name}</span>
+                        </div>
+                        <span className="text-xs text-amber-700 font-extrabold shrink-0 bg-amber-100/70 px-1.5 py-0.5 rounded-md">
+                          +5฿
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            </div>
-          );
+              );
         })}
-      </div>
-
-      {/* Price Breakdown Summary Card */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <Receipt size={18} className="text-blue-900" />
-            <h2 className="text-sm font-bold text-gray-900">
-              รายละเอียดการคิดราคา (PRICE BREAKDOWN)
-            </h2>
-          </div>
-          <StatusBadge status={calculation.bundleSets > 0 ? 'Promo' : 'Regular'} />
-        </div>
-
-        {/* Calculation Lines */}
-        <div className="space-y-2 text-xs sm:text-sm">
-          <div className="flex justify-between text-gray-600">
-            <span>ราคาเมนูปกติ ({calculation.totalPieces} ชิ้น × 25฿):</span>
-            <span className="font-medium">{calculation.regularBasePrice} บาท</span>
-          </div>
-
-          {calculation.bundleSets > 0 && (
-            <div className="flex justify-between text-emerald-700 font-bold bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200/60">
-              <span className="flex items-center gap-1">
-                <Sparkles size={14} />
-                โปรโมชั่น 3 ชิ้น 70฿ ({calculation.bundleSets} ชุด = {calculation.bundleSets * 3} ชิ้น):
-              </span>
-              <span>ลดทันที -{calculation.discountSaved} บาท</span>
             </div>
-          )}
 
-          <div className="flex justify-between text-gray-800 font-bold">
-            <span>
-              รวมค่าเมนูหลัก{' '}
-              {calculation.bundleSets > 0 &&
-                `(${calculation.bundleSets}×70฿${
-                  calculation.remainingPieces > 0 ? ` + ${calculation.remainingPieces}×25฿` : ''
-                })`}
-              :
-            </span>
-            <span>{calculation.discountedBasePrice} บาท</span>
-          </div>
+      {/* Price Breakdown Summary Card */ }
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Receipt size={18} className="text-blue-900" />
+                <h2 className="text-sm font-bold text-gray-900">
+                  รายละเอียดการคิดราคา (PRICE BREAKDOWN)
+                </h2>
+              </div>
+              <StatusBadge status={calculation.bundleSets > 0 ? 'Promo' : 'Regular'} />
+            </div>
 
-          <div className="flex justify-between text-amber-800 font-medium">
-            <span>
-              รวมค่าท็อปปิ้งทั้งหมด ({calculation.totalToppingsCount} อย่าง × 5฿):
-            </span>
-            <span className="font-bold">+{calculation.totalToppingsPrice} บาท</span>
-          </div>
-        </div>
-
-        {/* Total Banner */}
-        <div className="p-4 rounded-xl bg-blue-50/80 border border-blue-200 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wider block">
-              สรุปยอดตามใบออเดอร์
-            </span>
-            <span className="text-sm sm:text-base font-extrabold text-gray-800">
-              รวม <span className="text-blue-900 underline">{calculation.totalPieces}</span> ชิ้น /{' '}
-              <span className="text-blue-900 underline">{calculation.grandTotal}</span> บาท
-            </span>
-          </div>
-          <div className="text-right">
-            <span className="text-2xl sm:text-3xl font-black text-blue-900">
-              ฿{calculation.grandTotal}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Floating Bottom Bar for Mobile & iPad with Instant CTA */}
-      <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 z-40 shadow-lg">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
-          <div>
-            <span className="text-[11px] text-gray-500 block leading-tight">
-              รวม {calculation.totalPieces} ชิ้น {calculation.bundleSets > 0 && `(โปร ${calculation.bundleSets} ชุด)`}
-            </span>
-            <span className="text-xl sm:text-2xl font-black text-blue-900">
-              ฿{calculation.grandTotal}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            disabled={items.length === 0}
-            onClick={() => setShowSummaryModal(true)}
-            className="flex-1 sm:flex-initial py-3 px-5 sm:px-8 bg-blue-900 hover:bg-blue-950 active:scale-95 disabled:bg-gray-300 text-white font-bold text-sm sm:text-base rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-          >
-            <QrCode size={20} className="text-white" />
-            <span>สร้าง QR Code พร้อมเพย์</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Modal: สแกนจ่ายพร้อมเพย์ PromptPay QR & สรุปออเดอร์ */}
-      {showSummaryModal && (
-        <Modal
-          title="สแกนจ่ายผ่าน PromptPay QR Code"
-          onClose={() => setShowSummaryModal(false)}
-          size="md"
-        >
-          <div className="space-y-4">
-            {/* PromptPay Official Card */}
-            <div className="bg-white rounded-2xl border-2 border-blue-900/20 shadow-sm p-4 sm:p-5 flex flex-col items-center text-center">
-              {/* PromptPay Top Branding Header */}
-              <div className="w-full flex items-center justify-between pb-3 border-b border-gray-100">
-                <div className="flex items-center gap-2 text-left">
-                  <div className="w-8 h-8 rounded-lg bg-[#002b49] text-white flex items-center justify-center font-bold text-xs">
-                    PP
-                  </div>
-                  <div>
-                    <span className="font-extrabold text-sm text-[#002b49] tracking-tight block">
-                      พร้อมเพย์ (PromptPay)
-                    </span>
-                    <span className="text-[11px] text-gray-500">
-                      เบอร์โทร: <strong className="text-gray-900 font-mono text-xs">061-820-0073</strong>
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-gray-400 block uppercase">ยอดชำระ</span>
-                  <span className="text-xl font-black text-blue-900">฿{calculation.grandTotal}</span>
-                </div>
+            {/* Calculation Lines */}
+            <div className="space-y-2 text-xs sm:text-sm">
+              <div className="flex justify-between text-gray-600">
+                <span>ราคาเมนูปกติ ({calculation.totalPieces} ชิ้น × 25฿):</span>
+                <span className="font-medium">{calculation.regularBasePrice} บาท</span>
               </div>
 
-              {/* QR Code Canvas */}
-              <div className="my-4 p-3 bg-white rounded-2xl border-2 border-gray-100 shadow-inner flex flex-col items-center">
-                {qrDataUrl ? (
-                  <img
-                    src={qrDataUrl}
-                    alt="PromptPay QR Code"
-                    className="w-56 h-56 sm:w-64 sm:h-64 object-contain rounded-lg"
-                  />
-                ) : (
-                  <div className="w-56 h-56 flex items-center justify-center text-gray-400 text-xs">
-                    กำลังสร้าง QR Code...
-                  </div>
-                )}
-                <div className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#002b49]">
-                  <Smartphone size={14} />
-                  <span>สแกนจ่ายได้ทุกแอปธนาคาร</span>
+              {calculation.bundleSets > 0 && (
+                <div className="flex justify-between text-emerald-700 font-bold bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200/60">
+                  <span className="flex items-center gap-1">
+                    <Sparkles size={14} />
+                    โปรโมชั่น 3 ชิ้น 70฿ ({calculation.bundleSets} ชุด = {calculation.bundleSets * 3} ชิ้น):
+                  </span>
+                  <span>ลดทันที -{calculation.discountSaved} บาท</span>
                 </div>
+              )}
+
+              <div className="flex justify-between text-gray-800 font-bold">
+                <span>
+                  รวมค่าเมนูหลัก{' '}
+                  {calculation.bundleSets > 0 &&
+                    `(${calculation.bundleSets}×70฿${calculation.remainingPieces > 0 ? ` + ${calculation.remainingPieces}×25฿` : ''
+                    })`}
+                  :
+                </span>
+                <span>{calculation.discountedBasePrice} บาท</span>
               </div>
 
-              {/* Price Details Badge */}
-              <div className="w-full py-2 px-3 rounded-xl bg-blue-50/70 border border-blue-200/60 flex items-center justify-between text-xs">
-                <span className="text-gray-600">
-                  PANWICH ({calculation.totalPieces} ชิ้น {calculation.totalToppingsCount > 0 ? `+ ${calculation.totalToppingsCount} ท็อปปิ้ง` : ''})
+              <div className="flex justify-between text-amber-800 font-medium">
+                <span>
+                  รวมค่าท็อปปิ้งทั้งหมด ({calculation.totalToppingsCount} อย่าง × 5฿):
                 </span>
-                <span className="font-extrabold text-blue-900 text-sm">
-                  {calculation.grandTotal}.00 บาท
-                </span>
+                <span className="font-bold">+{calculation.totalToppingsPrice} บาท</span>
               </div>
             </div>
 
-            {/* Modal Action Buttons */}
-            <div className="pt-2">
+            {/* Total Banner */}
+            <div className="p-4 rounded-xl bg-blue-50/80 border border-blue-200 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wider block">
+                  สรุปยอดตามใบออเดอร์
+                </span>
+                <span className="text-sm sm:text-base font-extrabold text-gray-800">
+                  รวม <span className="text-blue-900 underline">{calculation.totalPieces}</span> ชิ้น /{' '}
+                  <span className="text-blue-900 underline">{calculation.grandTotal}</span> บาท
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl sm:text-3xl font-black text-blue-900">
+                  ฿{calculation.grandTotal}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating Bottom Bar for Mobile & iPad with Instant CTA */ }
+          <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-3 z-40 shadow-lg">
+            <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+              <div>
+                <span className="text-[11px] text-gray-500 block leading-tight">
+                  รวม {calculation.totalPieces} ชิ้น {calculation.bundleSets > 0 && `(โปร ${calculation.bundleSets} ชุด)`}
+                </span>
+                <span className="text-xl sm:text-2xl font-black text-blue-900">
+                  ฿{calculation.grandTotal}
+                </span>
+              </div>
+
               <button
                 type="button"
-                onClick={() => setShowSummaryModal(false)}
-                className="w-full py-2.5 text-xs sm:text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors active:scale-98"
+                disabled={items.length === 0}
+                onClick={() => setShowSummaryModal(true)}
+                className="flex-1 sm:flex-initial py-3 px-5 sm:px-8 bg-blue-900 hover:bg-blue-950 active:scale-95 disabled:bg-gray-300 text-white font-bold text-sm sm:text-base rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
               >
-                ปิดหน้าต่าง
+                <QrCode size={20} className="text-white" />
+                <span>สร้าง QR Code พร้อมเพย์</span>
               </button>
             </div>
           </div>
-        </Modal>
-      )}
+
+          {/* Modal: สแกนจ่ายพร้อมเพย์ PromptPay QR & สรุปออเดอร์ */ }
+          {
+            showSummaryModal && (
+              <Modal
+                title="สแกนจ่ายผ่าน PromptPay QR Code"
+                onClose={() => setShowSummaryModal(false)}
+                size="md"
+              >
+                <div className="space-y-4">
+                  {/* PromptPay Official Card */}
+                  <div className="bg-white rounded-2xl border-2 border-blue-900/20 shadow-sm p-4 sm:p-5 flex flex-col items-center text-center">
+                    {/* PromptPay Top Branding Header */}
+                    <div className="w-full flex items-center justify-between pb-3 border-b border-gray-100">
+                      <div className="flex items-center gap-2 text-left">
+                        <div className="w-8 h-8 rounded-lg bg-[#002b49] text-white flex items-center justify-center font-bold text-xs">
+                          PP
+                        </div>
+                        <div>
+                          <span className="font-extrabold text-sm text-[#002b49] tracking-tight block">
+                            พร้อมเพย์ (PromptPay)
+                          </span>
+                          <span className="text-[11px] text-gray-500">
+                            เบอร์โทร: <strong className="text-gray-900 font-mono text-xs">061-820-0073</strong>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-gray-400 block uppercase">ยอดชำระ</span>
+                        <span className="text-xl font-black text-blue-900">฿{calculation.grandTotal}</span>
+                      </div>
+                    </div>
+
+                    {/* QR Code Canvas */}
+                    <div className="my-4 p-3 bg-white rounded-2xl border-2 border-gray-100 shadow-inner flex flex-col items-center">
+                      {qrDataUrl ? (
+                        <img
+                          src={qrDataUrl}
+                          alt="PromptPay QR Code"
+                          className="w-56 h-56 sm:w-64 sm:h-64 object-contain rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-56 h-56 flex items-center justify-center text-gray-400 text-xs">
+                          กำลังสร้าง QR Code...
+                        </div>
+                      )}
+                      <div className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[#002b49]">
+                        <Smartphone size={14} />
+                        <span>สแกนจ่ายได้ทุกแอปธนาคาร</span>
+                      </div>
+                    </div>
+
+                    {/* Price Details Badge */}
+                    <div className="w-full py-2 px-3 rounded-xl bg-blue-50/70 border border-blue-200/60 flex items-center justify-between text-xs">
+                      <span className="text-gray-600">
+                        PANWICH ({calculation.totalPieces} ชิ้น {calculation.totalToppingsCount > 0 ? `+ ${calculation.totalToppingsCount} ท็อปปิ้ง` : ''})
+                      </span>
+                      <span className="font-extrabold text-blue-900 text-sm">
+                        {calculation.grandTotal}.00 บาท
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Modal Action Buttons */}
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowSummaryModal(false)}
+                      className="w-full py-2.5 text-xs sm:text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors active:scale-98"
+                    >
+                      ปิดหน้าต่าง
+                    </button>
+                  </div>
+                </div>
+              </Modal>
+            )
+          }
     </div>
-  );
+      );
 }
